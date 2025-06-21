@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nate The Great - Basketball</title>
+    
+    <!-- Google Fonts - Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/phaser@2.4.6/build/phaser.min.js"></script>
+    
+    <style type="text/css">
+        :root {
+            --theme-bg-start: #0f0f0f;
+            --theme-bg-end: #6a2d9e;
+            --theme-primary: #9945ff;
+            --theme-accent: #00d4ff;
+            --theme-text: #c0c0c0;
+            --theme-border: #9945ff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, var(--theme-bg-start) 0%, var(--theme-bg-end) 100%);
+            color: var(--theme-accent);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 20px 0;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, var(--theme-primary), var(--theme-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(153, 69, 255, 0.5);
+        }
+        
+        canvas {
+            margin: 0 auto;
+            border: 3px solid var(--theme-border);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(153, 69, 255, 0.3);
+            display: block;
+        }
+        
+        .info {
+            display: block;
+            margin: 30px auto;
+            max-width: 500px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--theme-text);
+            font-weight: 400;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--theme-accent);
+            margin: 10px 0 30px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--theme-bg-start) 0%, var(--theme-bg-end) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .button {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, var(--theme-primary), var(--theme-accent));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 200px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(153, 69, 255, 0.4);
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--theme-border);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Main Menu -->
+<div id="menuScreen" class="menu-screen">
+    <h1>Nate The Great</h1>
+    <div class="subtitle">Blockchain Basketball</div>
+    
+    <div class="menu-buttons">
+        <button class="button" onclick="startGame()">Start Game</button>
+    </div>
+    
+    <div class="info">
+        Click and drag to shoot the basketball!<br>
+        Standalone version - works offline.
+    </div>
+</div>
+
+<!-- Game Screen -->
+<div id="gameScreen" class="game-container hidden">
+    <button class="button back-button" onclick="backToMenu()">← Menu</button>
+    
+    <h1>Nate The Great</h1>
+    <div class="subtitle">Score: <span id="scoreDisplay">0</span></div>
+    
+    <div id="gameContainer"></div>
+    
+    <div class="info">
+        Instructions: Click and drag to shoot the ball into the hoop!
+    </div>
+</div>
+
+<script type="text/javascript">
+
+var game;
+var gameState = 'menu';
+var currentScore = 0;
+
+// Game objects
+var ball, hoop, ground;
+var ballStartX = 200, ballStartY = 500;
+var isDragging = false;
+var dragStartX, dragStartY;
+
+function showScreen(screenId) {
+    document.getElementById('menuScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById(screenId).classList.remove('hidden');
+}
+
+function startGame() {
+    showScreen('gameScreen');
+    gameState = 'playing';
+    initializeGame();
+}
+
+function backToMenu() {
+    showScreen('menuScreen');
+    gameState = 'menu';
+    if (game) {
+        game.destroy();
+        game = null;
+    }
+    currentScore = 0;
+    updateScore();
+}
+
+function updateScore() {
+    document.getElementById('scoreDisplay').textContent = currentScore;
+}
+
+function initializeGame() {
+    if (game) {
+        game.destroy();
+    }
+    
+    game = new Phaser.Game(400, 600, Phaser.AUTO, 'gameContainer', { 
+        preload: preload, 
+        create: create, 
+        update: update 
+    });
+}
+
+function preload() {
+    // Create simple colored rectangles instead of loading image files
+    game.add.graphics(0, 0);
+    
+    // Create ball sprite
+    var ballGraphics = game.add.graphics(0, 0);
+    ballGraphics.beginFill(0xFF6600); // Orange
+    ballGraphics.drawCircle(0, 0, 20);
+    ballGraphics.endFill();
+    var ballTexture = ballGraphics.generateTexture();
+    game.cache.addImage('ball', null, ballTexture.baseTexture.source);
+    ballGraphics.destroy();
+    
+    // Create hoop sprite
+    var hoopGraphics = game.add.graphics(0, 0);
+    hoopGraphics.lineStyle(4, 0xFF0000); // Red rim
+    hoopGraphics.drawCircle(0, 0, 60);
+    hoopGraphics.lineStyle(2, 0x000000); // Black net
+    for (var i = 0; i < 8; i++) {
+        var angle = (i / 8) * Math.PI * 2;
+        var x1 = Math.cos(angle) * 30;
+        var y1 = Math.sin(angle) * 30;
+        var x2 = Math.cos(angle) * 25;
+        var y2 = Math.sin(angle) * 25 + 20;
+        hoopGraphics.moveTo(x1, y1);
+        hoopGraphics.lineTo(x2, y2);
+    }
+    var hoopTexture = hoopGraphics.generateTexture();
+    game.cache.addImage('hoop', null, hoopTexture.baseTexture.source);
+    hoopGraphics.destroy();
+}
+
+function create() {
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.physics.arcade.gravity.y = 800;
+    
+    // Set background
+    game.stage.backgroundColor = "#0f0f0f";
+    
+    // Create hoop
+    hoop = game.add.sprite(300, 150, 'hoop');
+    hoop.anchor.setTo(0.5, 0.5);
+    
+    // Create ball
+    resetBall();
+    
+    // Create invisible ground
+    ground = game.add.graphics(0, game.height - 50);
+    ground.beginFill(0x00ff00, 0); // Invisible
+    ground.drawRect(0, 0, game.width, 50);
+    ground.endFill();
+    game.physics.arcade.enable(ground);
+    ground.body.immovable = true;
+    
+    // Input events
+    game.input.onDown.add(onMouseDown, this);
+    game.input.onUp.add(onMouseUp, this);
+}
+
+function resetBall() {
+    if (ball) {
+        ball.destroy();
+    }
+    
+    ball = game.add.sprite(ballStartX, ballStartY, 'ball');
+    ball.anchor.setTo(0.5, 0.5);
+    game.physics.arcade.enable(ball);
+    ball.body.bounce.setTo(0.7, 0.7);
+    ball.body.collideWorldBounds = true;
+}
+
+function onMouseDown(pointer) {
+    if (gameState !== 'playing') return;
+    
+    var distance = Phaser.Math.distance(pointer.x, pointer.y, ball.x, ball.y);
+    if (distance < 30) {
+        isDragging = true;
+        dragStartX = pointer.x;
+        dragStartY = pointer.y;
+    }
+}
+
+function onMouseUp(pointer) {
+    if (isDragging && gameState === 'playing') {
+        isDragging = false;
+        
+        var deltaX = dragStartX - pointer.x;
+        var deltaY = dragStartY - pointer.y;
+        
+        // Shoot the ball
+        ball.body.velocity.x = deltaX * 5;
+        ball.body.velocity.y = deltaY * 8;
+        
+        // Schedule ball reset
+        game.time.events.add(3000, resetBall, this);
+    }
+}
+
+function update() {
+    if (!ball || !hoop) return;
+    
+    // Check collision with ground
+    game.physics.arcade.collide(ball, ground);
+    
+    // Check if ball goes through hoop
+    var distance = Phaser.Math.distance(ball.x, ball.y, hoop.x, hoop.y);
+    if (distance < 40 && ball.y > hoop.y - 10 && ball.y < hoop.y + 10) {
+        if (Math.abs(ball.body.velocity.y) < 200) { // Not moving too fast
+            currentScore++;
+            updateScore();
+            
+            // Reset ball after score
+            game.time.events.add(1000, resetBall, this);
+        }
+    }
+}
+
+// Initialize score display
+updateScore();
+
+</script>
+
+</body>
+</html>
