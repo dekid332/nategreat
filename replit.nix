@@ -1,5 +1,6 @@
-{pkgs}: {
+{ pkgs }: {
   deps = [
-    pkgs.tree
+    pkgs.git
+    pkgs.nodejs
   ];
 }
