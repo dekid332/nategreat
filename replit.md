@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a 3D basketball game application built with React and Three.js, featuring a modern tech stack with TypeScript, Tailwind CSS, and a comprehensive UI component library. The application is designed as a single-page game with full-screen 3D graphics, leaderboard functionality, and sound effects.
+This is a 2D basketball game built with Phaser.js, featuring Solana crypto theming and simple drag-to-shoot mechanics. The game is based on the original Facebook Messenger basketball game style with custom "Nate The Great" branding and Solana color scheme (deep purple, black, neon blue, silver accents).
 
 ## System Architecture
 
