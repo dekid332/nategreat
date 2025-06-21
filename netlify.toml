@@ -1,6 +1,6 @@
 [build]
-  # Build command - install deps including sharp and build client only
-  command = "npm ci && npm install sharp && npx vite build"
+  # Build command - direct Vite build with Netlify config
+  command = "npx vite build --config vite.config.netlify.ts"
   
   # Directory to publish - the built React app
   publish = "dist/public"
@@ -8,6 +8,8 @@
 [build.environment]
   # Node.js version for any build processes
   NODE_VERSION = "18"
+  # Ensure production build
+  NODE_ENV = "production"
 
 [[headers]]
   # Apply headers to all files
