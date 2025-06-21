@@ -632,46 +632,52 @@ function create() {
 }
 
 function update() {
-    if (ball && ball.body.velocity.y > 0) {
-        front_rim = game.add.sprite(148, 182, 'front rim');
-        ball.body.collides([collisionGroup], hitRim, this);
-    }
-
-    if (ball && ball.body.velocity.y > 0 && ball.body.y > 188 && !ball.isBelowHoop) {
-        ball.isBelowHoop = true;
-        ball.body.collideWorldBounds = false;
-        var rand = Math.floor(Math.random() * 5);
-        if (ball.body.x > 151 && ball.body.x < 249) {
-            emojiName = "win" + rand;
-            current_score += 1;
-            current_score_text.text = current_score;
-            score_sound.play();
-        } else {
-            emojiName = "lose" + rand;
-            fail.play();
-            if (current_score > high_score) {
-                high_score = current_score;
-            }
-            // Game over - show score submission
-            setTimeout(function() {
-                showGameOver(current_score);
-            }, 2000);
-            current_score = 0;
-            current_score_text.text = '';
-            current_best_text.text = 'Current Best';
-            current_best_score_text.text = high_score;
+    if (!game || !ball || !ball.body) return;
+    
+    try {
+        if (ball && ball.body.velocity && ball.body.velocity.y > 0) {
+            front_rim = game.add.sprite(148, 182, 'front rim');
+            ball.body.collides([collisionGroup], hitRim, this);
         }
-        emoji = game.add.sprite(180, 100, emojiName);
-        emoji.scale.setTo(0.25, 0.25);
-        moveInTween = game.add.tween(emoji).from( { y: 150 }, 500, Phaser.Easing.Elastic.Out, true);
-        fadeInTween = game.add.tween(emoji).from( { alpha: 0 }, 200, Phaser.Easing.Linear.None, true, 0, 0, false);
-        moveInTween.onComplete.add(tweenOut, this);
-    }
 
-    if (ball && ball.body.y > 1200) {
-        game.physics.p2.gravity.y = 0;
-        ball.kill();
-        createBall();
+        if (ball && ball.body.velocity && ball.body.velocity.y > 0 && ball.body.y > 188 && !ball.isBelowHoop) {
+            ball.isBelowHoop = true;
+            ball.body.collideWorldBounds = false;
+            var rand = Math.floor(Math.random() * 5);
+            if (ball.body.x > 151 && ball.body.x < 249) {
+                emojiName = "win" + rand;
+                current_score += 1;
+                if (current_score_text) current_score_text.text = current_score;
+                if (score_sound) score_sound.play();
+            } else {
+                emojiName = "lose" + rand;
+                if (fail) fail.play();
+                if (current_score > high_score) {
+                    high_score = current_score;
+                }
+                // Game over - show score submission
+                setTimeout(function() {
+                    showGameOver(current_score);
+                }, 2000);
+                current_score = 0;
+                if (current_score_text) current_score_text.text = '';
+                if (current_best_text) current_best_text.text = 'Current Best';
+                if (current_best_score_text) current_best_score_text.text = high_score;
+            }
+            emoji = game.add.sprite(180, 100, emojiName);
+            emoji.scale.setTo(0.25, 0.25);
+            moveInTween = game.add.tween(emoji).from( { y: 150 }, 500, Phaser.Easing.Elastic.Out, true);
+            fadeInTween = game.add.tween(emoji).from( { alpha: 0 }, 200, Phaser.Easing.Linear.None, true, 0, 0, false);
+            moveInTween.onComplete.add(tweenOut, this);
+        }
+
+        if (ball && ball.body.y > 1200) {
+            game.physics.p2.gravity.y = 0;
+            ball.kill();
+            createBall();
+        }
+    } catch (e) {
+        console.error('Update error:', e);
     }
 }
 
@@ -684,23 +690,29 @@ function tweenOut() {
 }
 
 function hitRim() {
-    backboard.play();
+    if (backboard) backboard.play();
 }
 
 function createBall() {
-    var xpos;
-    if (current_score === 0) {
-        xpos = 200;
-    } else {
-        xpos = 60 + Math.random() * 280;
+    if (!game) return;
+    
+    try {
+        var xpos;
+        if (current_score === 0) {
+            xpos = 200;
+        } else {
+            xpos = 60 + Math.random() * 280;
+        }
+        if (spawn) spawn.play();
+        ball = game.add.sprite(xpos, 547, 'ball');
+        game.add.tween(ball.scale).from({x : 0.7, y : 0.7}, 100, Phaser.Easing.Linear.None, true, 0, 0, false);
+        game.physics.p2.enable(ball, false);
+        ball.body.setCircle(60);
+        ball.launched = false;
+        ball.isBelowHoop = false;
+    } catch (e) {
+        console.error('CreateBall error:', e);
     }
-    spawn.play();
-    ball = game.add.sprite(xpos, 547, 'ball');
-    game.add.tween(ball.scale).from({x : 0.7, y : 0.7}, 100, Phaser.Easing.Linear.None, true, 0, 0, false);
-    game.physics.p2.enable(ball, false);
-    ball.body.setCircle(60);
-    ball.launched = false;
-    ball.isBelowHoop = false;
 }
 
 var location_interval;
@@ -709,43 +721,66 @@ var start_location;
 var end_location;
 
 function click(pointer) {
-    var bodies = game.physics.p2.hitTest(pointer.position, [ ball.body ]);
-    if (bodies.length) {
-        start_location = [pointer.x, pointer.y];
-        isDown = true;
-        location_interval = setInterval(function () {
+    if (!game || !ball || !ball.body || !pointer) return;
+    
+    try {
+        var bodies = game.physics.p2.hitTest(pointer.position, [ ball.body ]);
+        if (bodies.length) {
             start_location = [pointer.x, pointer.y];
-        }.bind(this), 200);
+            isDown = true;
+            location_interval = setInterval(function () {
+                if (pointer && pointer.x !== undefined && pointer.y !== undefined) {
+                    start_location = [pointer.x, pointer.y];
+                }
+            }.bind(this), 200);
+        }
+    } catch (e) {
+        console.error('Click error:', e);
     }
 }
 
 function release(pointer) {
-    if (isDown) {
-        window.clearInterval(location_interval);
-        isDown = false;
-        end_location = [pointer.x, pointer.y];
+    if (!pointer) return;
+    
+    try {
+        if (isDown) {
+            if (location_interval) {
+                window.clearInterval(location_interval);
+                location_interval = null;
+            }
+            isDown = false;
+            end_location = [pointer.x, pointer.y];
 
-        if (end_location[1] < start_location[1]) {
-            var slope = [end_location[0] - start_location[0], end_location[1] - start_location[1]];
-            var x_traj = -2300 * slope[0] / slope[1];
-            launch(x_traj);
+            if (end_location[1] < start_location[1]) {
+                var slope = [end_location[0] - start_location[0], end_location[1] - start_location[1]];
+                var x_traj = -2300 * slope[0] / slope[1];
+                launch(x_traj);
+            }
         }
+    } catch (e) {
+        console.error('Release error:', e);
     }
 }
 
 function launch(x_traj) {
-    if (ball.launched === false) {
-        ball.body.setCircle(36);
-        ball.body.setCollisionGroup(collisionGroup);
-        current_best_text.text = '';
-        current_best_score_text.text = '';
-        ball.launched = true;
-        game.physics.p2.gravity.y = 3000;
-        game.add.tween(ball.scale).to({x : 0.6, y : 0.6}, 500, Phaser.Easing.Linear.None, true, 0, 0, false);
-        ball.body.velocity.x = x_traj;
-        ball.body.velocity.y = -1750;
-        ball.body.rotateRight(x_traj / 3);
-        whoosh.play();
+    if (!ball || !ball.body || !game) return;
+    
+    try {
+        if (ball.launched === false) {
+            ball.body.setCircle(36);
+            ball.body.setCollisionGroup(collisionGroup);
+            current_best_text.text = '';
+            current_best_score_text.text = '';
+            ball.launched = true;
+            game.physics.p2.gravity.y = 3000;
+            game.add.tween(ball.scale).to({x : 0.6, y : 0.6}, 500, Phaser.Easing.Linear.None, true, 0, 0, false);
+            ball.body.velocity.x = x_traj;
+            ball.body.velocity.y = -1750;
+            ball.body.rotateRight(x_traj / 3);
+            if (whoosh) whoosh.play();
+        }
+    } catch (e) {
+        console.error('Launch error:', e);
     }
 }
 
