@@ -1,9 +1,9 @@
 [build]
-  # Build command - not needed for static HTML
-  command = ""
+  # Build command to compile the React app
+  command = "npm run build"
   
-  # Directory to publish - current directory since index.html is in root
-  publish = "."
+  # Directory to publish - the built React app
+  publish = "dist/public"
 
 [build.environment]
   # Node.js version for any build processes
@@ -34,7 +34,7 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
 
-# Redirect rules for SPA behavior (if needed)
+# Redirect rules for SPA behavior - handle client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
