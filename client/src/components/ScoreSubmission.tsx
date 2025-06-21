@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { useBasketball } from "../lib/stores/useBasketball";
-import { useLeaderboard } from "../lib/stores/useLeaderboard";
+import { useSubmitScore } from "../lib/stores/useLeaderboard";
 import { useGame } from "../lib/stores/useGame";
 
 export default function ScoreSubmission() {
   const { score, resetGame } = useBasketball();
-  const { addScore } = useLeaderboard();
+  const submitScore = useSubmitScore();
   const { restart } = useGame();
   
   const [playerName, setPlayerName] = useState("");
   const [wallet, setWallet] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{playerName?: string; wallet?: string}>({});
 
   const validateWallet = (address: string) => {
@@ -21,7 +20,6 @@ export default function ScoreSubmission() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrors({});
 
     // Validation
@@ -41,17 +39,15 @@ export default function ScoreSubmission() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setIsSubmitting(false);
       return;
     }
 
     try {
-      // Add score to leaderboard
-      addScore({
+      // Submit score to public leaderboard
+      await submitScore.mutateAsync({
         playerName: playerName.trim(),
         score,
         wallet: wallet.trim(),
-        date: new Date().toISOString()
       });
 
       // Reset game and go back to menu
@@ -59,8 +55,7 @@ export default function ScoreSubmission() {
       restart();
     } catch (error) {
       console.error("Error submitting score:", error);
-    } finally {
-      setIsSubmitting(false);
+      setErrors({ playerName: "Failed to submit score. Please try again." });
     }
   };
 
@@ -84,7 +79,7 @@ export default function ScoreSubmission() {
         {/* Score Submission Form */}
         <div className="bg-black bg-opacity-60 rounded-lg border border-purple-400 p-6">
           <h2 className="text-2xl font-bold text-center mb-6 text-purple-400">
-            SAVE YOUR SCORE
+            SAVE TO GLOBAL LEADERBOARD
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,7 +95,7 @@ export default function ScoreSubmission() {
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white font-mono focus:border-purple-400 focus:outline-none transition-colors"
                 placeholder="Enter your name"
                 maxLength={20}
-                disabled={isSubmitting}
+                disabled={submitScore.isPending}
               />
               {errors.playerName && (
                 <p className="text-red-400 text-sm mt-1">{errors.playerName}</p>
@@ -118,30 +113,30 @@ export default function ScoreSubmission() {
                 onChange={(e) => setWallet(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white font-mono text-sm focus:border-purple-400 focus:outline-none transition-colors"
                 placeholder="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
-                disabled={isSubmitting}
+                disabled={submitScore.isPending}
               />
               {errors.wallet && (
                 <p className="text-red-400 text-sm mt-1">{errors.wallet}</p>
               )}
               <p className="text-gray-500 text-xs mt-1">
-                Your Solana wallet address for the leaderboard
+                Your Solana wallet address - visible on the global leaderboard
               </p>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={submitScore.isPending}
               className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold text-lg rounded-lg shadow-lg transform hover:scale-105 disabled:hover:scale-100 transition-all duration-200 border border-purple-400"
             >
-              {isSubmitting ? "SAVING..." : "SAVE SCORE"}
+              {submitScore.isPending ? "SAVING TO GLOBAL LEADERBOARD..." : "SAVE TO GLOBAL LEADERBOARD"}
             </button>
           </form>
 
           {/* Skip Button */}
           <button
             onClick={handleSkip}
-            disabled={isSubmitting}
+            disabled={submitScore.isPending}
             className="w-full mt-4 px-6 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white font-bold text-lg rounded-lg transition-colors"
           >
             SKIP & CONTINUE

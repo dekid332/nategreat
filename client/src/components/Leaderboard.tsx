@@ -1,9 +1,9 @@
-import { useLeaderboard } from "../lib/stores/useLeaderboard";
+import { useLeaderboardData } from "../lib/stores/useLeaderboard";
 import { useGame } from "../lib/stores/useGame";
 import { useBasketball } from "../lib/stores/useBasketball";
 
 export default function Leaderboard() {
-  const { scores } = useLeaderboard();
+  const { data: scores = [], isLoading, error } = useLeaderboardData();
   const { restart } = useGame();
   const { setGameState } = useBasketball();
 
@@ -30,11 +30,22 @@ export default function Leaderboard() {
 
         {/* Leaderboard Table */}
         <div className="bg-black bg-opacity-60 rounded-lg border border-purple-400 overflow-hidden">
-          {scores.length === 0 ? (
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading global leaderboard...</p>
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center">
+              <div className="text-4xl mb-4 text-red-400">⚠️</div>
+              <h3 className="text-xl font-bold text-red-400 mb-2">Connection Error</h3>
+              <p className="text-gray-500">Unable to load leaderboard. Please try again later.</p>
+            </div>
+          ) : scores.length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-4xl mb-4">🏀</div>
               <h3 className="text-xl font-bold text-gray-400 mb-2">No Scores Yet</h3>
-              <p className="text-gray-500">Be the first to make the leaderboard!</p>
+              <p className="text-gray-500">Be the first to make the global leaderboard!</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -77,7 +88,7 @@ export default function Leaderboard() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm text-gray-400">
-                          {new Date(score.date).toLocaleDateString()}
+                          {new Date(score.createdAt).toLocaleDateString()}
                         </div>
                       </td>
                     </tr>
