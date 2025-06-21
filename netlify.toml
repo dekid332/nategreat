@@ -1,6 +1,6 @@
 [build]
-  # Build command to compile the React app
-  command = "npm run build"
+  # Build command - install deps and build client only
+  command = "npm ci && npx vite build"
   
   # Directory to publish - the built React app
   publish = "dist/public"
