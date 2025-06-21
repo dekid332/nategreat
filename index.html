@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nate The Great - Basketball</title>
+    
+    <!-- Google Fonts - Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/phaser@2.4.6/build/phaser.min.js"></script>
+    
+    <style type="text/css">
+        :root {
+            --theme-bg-start: #0f0f0f;
+            --theme-bg-end: #6a2d9e;
+            --theme-primary: #9945ff;
+            --theme-accent: #00d4ff;
+            --theme-text: #c0c0c0;
+            --theme-border: #9945ff;
+        }
+
+        [data-theme="cyber"] {
+            --theme-bg-start: #0a0a0a;
+            --theme-bg-end: #1a1a2e;
+            --theme-primary: #ff6b6b;
+            --theme-accent: #4ecdc4;
+            --theme-text: #ffffff;
+            --theme-border: #ff6b6b;
+        }
+
+        [data-theme="ocean"] {
+            --theme-bg-start: #0c0c2e;
+            --theme-bg-end: #1e3a5f;
+            --theme-primary: #4fa8d8;
+            --theme-accent: #7dd3fc;
+            --theme-text: #e0f2fe;
+            --theme-border: #4fa8d8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, var(--theme-bg-start) 0%, var(--theme-bg-end) 100%);
+            color: var(--theme-accent);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 20px 0;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, var(--theme-primary), var(--theme-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(153, 69, 255, 0.5);
+        }
+        
+        canvas {
+            margin: 0 auto;
+            border: 3px solid var(--theme-border);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(153, 69, 255, 0.3);
+            display: block;
+        }
+        
+        .info {
+            display: block;
+            margin: 30px auto;
+            max-width: 500px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--theme-text);
+            font-weight: 400;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--theme-accent);
+            margin: 10px 0 30px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-screen, .leaderboard-screen, .game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--theme-bg-start) 0%, var(--theme-bg-end) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .button {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, var(--theme-primary), var(--theme-accent));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 200px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(153, 69, 255, 0.4);
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--theme-border);
+        }
+
+        .form-group {
+            margin: 15px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--theme-accent);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--theme-border);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .leaderboard-table {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid var(--theme-border);
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+
+        .leaderboard-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-table th {
+            background: var(--theme-primary);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table td {
+            color: var(--theme-text);
+        }
+
+        .rank {
+            font-weight: bold;
+            color: var(--theme-accent);
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--theme-accent);
+        }
+
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .theme-selector select {
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--theme-accent);
+            border: 2px solid var(--theme-border);
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+        }
+
+        .wallet-display {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--theme-primary);
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body data-theme="solana">
+
+<!-- Theme Selector -->
+<div class="theme-selector">
+    <select id="themeSelector">
+        <option value="solana">Solana Theme</option>
+        <option value="cyber">Cyber Theme</option>
+        <option value="ocean">Ocean Theme</option>
+    </select>
+</div>
+
+<!-- Main Menu -->
+<div id="menuScreen" class="menu-screen">
+    <h1>Nate The Great</h1>
+    <div class="subtitle">Blockchain Basketball</div>
+    
+    <div class="menu-buttons">
+        <button class="button" onclick="startGame()">Start Game</button>
+        <button class="button secondary" onclick="showLeaderboard()">Leaderboard</button>
+    </div>
+    
+    <div class="info">
+        Drag the basketball upward to shoot it into the hoop!<br>
+        Powered by Solana blockchain technology.
+    </div>
+</div>
+
+<!-- Game Screen -->
+<div id="gameScreen" class="game-container hidden">
+    <button class="button secondary back-button" onclick="backToMenu()">← Menu</button>
+    
+    <h1>Nate The Great</h1>
+    <div class="subtitle">Blockchain Basketball</div>
+    
+    <div id="gameContainer"></div>
+    
+    <div class="info">
+        Instructions: Drag the ball upward to shoot it into the hoop!
+        <br><br>
+        <button class="button" onclick="submitCurrentScore()" style="margin-top: 10px;">Submit Current Score</button>
+    </div>
+</div>
+
+<!-- Leaderboard Screen -->
+<div id="leaderboardScreen" class="leaderboard-screen hidden">
+    <h1>Leaderboard</h1>
+    <div class="subtitle">Top Basketball Legends</div>
+    
+    <div class="leaderboard-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Wallet</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+                <!-- Leaderboard entries will be populated here -->
+            </tbody>
+        </table>
+    </div>
+    
+    <button class="button" onclick="backToMenu()">Back to Menu</button>
+</div>
+
+<!-- Game Over Screen -->
+<div id="gameOverScreen" class="game-over-screen hidden">
+    <h1>Game Over!</h1>
+    <div class="subtitle">Final Score: <span id="finalScore">0</span></div>
+    
+    <form id="scoreForm" onsubmit="submitScore(event)">
+        <div class="form-group">
+            <label for="playerName">Player Name</label>
+            <input type="text" id="playerName" required maxlength="20" placeholder="Enter your name">
+            <div class="error-message" id="nameError"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="walletAddress">Solana Wallet Address</label>
+            <input type="text" id="walletAddress" required placeholder="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM">
+            <div class="error-message" id="walletError"></div>
+        </div>
+        
+        <button type="submit" class="button">Save Score & Continue Playing</button>
+        <button type="button" class="button secondary" onclick="continueGame()">Skip & Continue Playing</button>
+    </form>
+</div>
+
+<script type="text/javascript">
+
+// Game state management
+var gameState = 'menu'; // 'menu', 'playing', 'gameover'
+var leaderboard = JSON.parse(localStorage.getItem('nate-basketball-leaderboard') || '[]');
+var currentGameScore = 0;
+var game;
+
+// Theme management
+function changeTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('nate-basketball-theme', theme);
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('nate-basketball-theme') || 'solana';
+document.body.setAttribute('data-theme', savedTheme);
+document.getElementById('themeSelector').value = savedTheme;
+
+document.getElementById('themeSelector').addEventListener('change', function() {
+    changeTheme(this.value);
+});
+
+// Screen management
+function showScreen(screenId) {
+    const screens = ['menuScreen', 'gameScreen', 'leaderboardScreen', 'gameOverScreen'];
+    screens.forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(screenId).classList.remove('hidden');
+}
+
+function startGame() {
+    showScreen('gameScreen');
+    gameState = 'playing';
+    initializeGame();
+}
+
+function showLeaderboard() {
+    showScreen('leaderboardScreen');
+    displayLeaderboard();
+}
+
+function backToMenu() {
+    showScreen('menuScreen');
+    gameState = 'menu';
+    cleanupGame();
+}
+
+function cleanupGame() {
+    // Clear any active intervals
+    if (location_interval) {
+        clearInterval(location_interval);
+        location_interval = null;
+    }
+    
+    // Reset state variables
+    isDown = false;
+    start_location = null;
+    end_location = null;
+    
+    // Destroy tweens if they exist
+    if (moveInTween) {
+        try { moveInTween.stop(); } catch (e) {}
+        moveInTween = null;
+    }
+    if (fadeInTween) {
+        try { fadeInTween.stop(); } catch (e) {}
+        fadeInTween = null;
+    }
+    if (moveOutTween) {
+        try { moveOutTween.stop(); } catch (e) {}
+        moveOutTween = null;
+    }
+    if (fadeOutTween) {
+        try { fadeOutTween.stop(); } catch (e) {}
+        fadeOutTween = null;
+    }
+    
+    // Destroy game
+    if (game) {
+        try {
+            game.destroy();
+        } catch (e) {
+            console.log('Game cleanup error:', e);
+        }
+        game = null;
+    }
+    
+    // Reset game objects
+    ball = null;
+    emoji = null;
+    current_score = 0;
+}
+
+function showGameOver(score) {
+    currentGameScore = score;
+    document.getElementById('finalScore').textContent = score;
+    showScreen('gameOverScreen');
+    gameState = 'gameover';
+}
+
+// Leaderboard functions
+function displayLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = '';
+    
+    if (leaderboard.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No scores yet. Be the first to play!</td></tr>';
+        return;
+    }
+    
+    leaderboard.forEach((entry, index) => {
+        const row = document.createElement('tr');
+        const shortWallet = entry.wallet.length > 8 ? 
+            `${entry.wallet.slice(0, 4)}...${entry.wallet.slice(-4)}` : 
+            entry.wallet;
+        
+        row.innerHTML = `
+            <td class="rank">#${index + 1}</td>
+            <td>${entry.playerName}</td>
+            <td class="score">${entry.score}</td>
+            <td class="wallet-display">${shortWallet}</td>
+            <td>${new Date(entry.date).toLocaleDateString()}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Form validation
+function validateSolanaWallet(address) {
+    // Basic Solana wallet validation - 32-44 characters, base58
+    const solanaPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return solanaPattern.test(address);
+}
+
+function submitScore(event) {
+    event.preventDefault();
+    
+    const playerName = document.getElementById('playerName').value.trim();
+    const walletAddress = document.getElementById('walletAddress').value.trim();
+    
+    // Clear previous errors
+    document.getElementById('nameError').textContent = '';
+    document.getElementById('walletError').textContent = '';
+    
+    let hasErrors = false;
+    
+    // Validate player name
+    if (!playerName) {
+        document.getElementById('nameError').textContent = 'Player name is required';
+        hasErrors = true;
+    } else if (playerName.length > 20) {
+        document.getElementById('nameError').textContent = 'Name must be 20 characters or less';
+        hasErrors = true;
+    }
+    
+    // Validate wallet address
+    if (!walletAddress) {
+        document.getElementById('walletError').textContent = 'Wallet address is required';
+        hasErrors = true;
+    } else if (!validateSolanaWallet(walletAddress)) {
+        document.getElementById('walletError').textContent = 'Invalid Solana wallet address';
+        hasErrors = true;
+    }
+    
+    if (hasErrors) return;
+    
+    // Add to leaderboard
+    const newEntry = {
+        id: Date.now().toString(),
+        playerName: playerName,
+        score: currentGameScore,
+        wallet: walletAddress,
+        date: new Date().toISOString()
+    };
+    
+    leaderboard.push(newEntry);
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 100); // Keep top 100
+    
+    localStorage.setItem('nate-basketball-leaderboard', JSON.stringify(leaderboard));
+    
+    // Clear form
+    document.getElementById('scoreForm').reset();
+    
+    continueGame();
+}
+
+function skipSaveScore() {
+    backToMenu();
+}
+
+function continueGame() {
+    showScreen('gameScreen');
+}
+
+function submitCurrentScore() {
+    if (current_score === 0) {
+        alert('Score some points first!');
+        return;
+    }
+    currentGameScore = current_score;
+    document.getElementById('finalScore').textContent = current_score;
+    showScreen('gameOverScreen');
+}
+
+// Initialize game
+function initializeGame() {
+    if (game) {
+        game.destroy();
+    }
+    
+    // NOTE: Originally 640x1000. Other possible sizes: 512x800, 400x625
+    game = new Phaser.Game(400, 625, Phaser.CANVAS, 'gameContainer', { preload: preload, create: create, update: update });
+}
+
+function preload() {
+    // Using inline base64 images for portability
+    game.load.image('ball', 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><circle cx="30" cy="30" r="28" fill="#ff6600" stroke="#cc4400" stroke-width="2"/><path d="M 2 30 A 28 28 0 0 1 58 30 M 30 2 A 28 28 0 0 1 30 58" stroke="#cc4400" stroke-width="1" fill="none"/></svg>'));
+    game.load.image('hoop', 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="225" height="120"><rect x="0" y="0" width="225" height="80" fill="#ffffff" stroke="#000" stroke-width="2"/><text x="112" y="45" text-anchor="middle" fill="#000" font-size="20" font-family="Arial">HOOP</text></svg>'));
+    game.load.image('side rim', 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="5" height="5"><circle cx="2.5" cy="2.5" r="2" fill="#ff6600"/></svg>'));
+    game.load.image('front rim', 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="5"><rect x="0" y="0" width="100" height="5" fill="#ff6600"/></svg>'));
+
+    // Emoji placeholders
+    for (let i = 0; i < 5; i++) {
+        game.load.image('win' + i, 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="45" fill="#00ff00"/><text x="50" y="65" text-anchor="middle" fill="#000" font-size="40">😊</text></svg>'));
+        game.load.image('lose' + i, 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="45" fill="#ff0000"/><text x="50" y="65" text-anchor="middle" fill="#000" font-size="40">😢</text></svg>'));
+    }
+}
+
+var hoop,
+    left_rim,
+    right_rim,
+    ball,
+    front_rim,
+    current_score = 0,
+    current_score_text,
+    high_score = 0,
+    high_score_text,
+    current_best_text;
+
+var score_sound,
+    backboard,
+    whoosh,
+    fail,
+    spawn;
+
+var moveInTween,
+    fadeInTween,
+    moveOutTween,
+    fadeOutTween,
+    emoji,
+    emojiName;
+
+var collisionGroup;
+
+function create() {
+    game.physics.startSystem(Phaser.Physics.P2JS);
+    game.physics.p2.setImpactEvents(true);
+    game.physics.p2.restitution = 0.63;
+    game.physics.p2.gravity.y = 0;
+
+    collisionGroup = game.physics.p2.createCollisionGroup();
+
+    // Solana-themed background - deep purple gradient
+    game.stage.backgroundColor = "#0f0f0f";
+
+    // Score text with Solana neon blue color
+    current_score_text = game.add.text(187, 312, '', { 
+        font: 'Orbitron', 
+        fontSize: '40px', 
+        fill: '#00d4ff', 
+        align: 'center',
+        fontWeight: 'bold'
+    });
+    
+    current_best_text = game.add.text(143, 281, '', { 
+        font: 'Orbitron', 
+        fontSize: '20px', 
+        fill: '#9945ff', 
+        align: 'center',
+        fontWeight: 'bold'
+    });
+    
+    current_best_score_text = game.add.text(187, 312, '', { 
+        font: 'Orbitron', 
+        fontSize: '40px', 
+        fill: '#c0c0c0', 
+        align: 'center',
+        fontWeight: 'bold'
+    });
+
+    hoop = game.add.sprite(88, 62, 'hoop');
+    left_rim = game.add.sprite(150, 184, 'side rim');
+    right_rim = game.add.sprite(249, 184, 'side rim');
+
+    game.physics.p2.enable([ left_rim, right_rim], false);
+
+    left_rim.body.setCircle(2.5);
+    left_rim.body.static = true;
+    left_rim.body.setCollisionGroup(collisionGroup);
+    left_rim.body.collides([collisionGroup]);
+
+    right_rim.body.setCircle(2.5);
+    right_rim.body.static = true;
+    right_rim.body.setCollisionGroup(collisionGroup);
+    right_rim.body.collides([collisionGroup]);
+
+    createBall();
+
+    cursors = game.input.keyboard.createCursorKeys();
+
+    game.input.onDown.add(click, this);
+    game.input.onUp.add(release, this);
+}
+
+function update() {
+    if (!game || !ball || !ball.body) return;
+    
+    try {
+        if (ball && ball.body.velocity && ball.body.velocity.y > 0) {
+            front_rim = game.add.sprite(148, 182, 'front rim');
+            ball.body.collides([collisionGroup], hitRim, this);
+        }
+
+        if (ball && ball.body.velocity && ball.body.velocity.y > 0 && ball.body.y > 188 && !ball.isBelowHoop) {
+            ball.isBelowHoop = true;
+            ball.body.collideWorldBounds = false;
+            var rand = Math.floor(Math.random() * 5);
+            if (ball.body.x > 151 && ball.body.x < 249) {
+                emojiName = "win" + rand;
+                current_score += 1;
+                if (current_score_text) current_score_text.text = current_score;
+            } else {
+                emojiName = "lose" + rand;
+                if (current_score > high_score) {
+                    high_score = current_score;
+                }
+                // Reset score but continue playing
+                current_score = 0;
+                if (current_score_text) current_score_text.text = '';
+                if (current_best_text) current_best_text.text = 'Current Best';
+                if (current_best_score_text) current_best_score_text.text = high_score;
+            }
+            if (game && game.add) {
+                emoji = game.add.sprite(180, 100, emojiName);
+                if (emoji) {
+                    emoji.scale.setTo(0.25, 0.25);
+                    moveInTween = game.add.tween(emoji).from( { y: 150 }, 500, Phaser.Easing.Elastic.Out, true);
+                    fadeInTween = game.add.tween(emoji).from( { alpha: 0 }, 200, Phaser.Easing.Linear.None, true, 0, 0, false);
+                    if (moveInTween) {
+                        moveInTween.onComplete.add(tweenOut, this);
+                    }
+                }
+            }
+        }
+
+        if (ball && ball.body.y > 1200) {
+            game.physics.p2.gravity.y = 0;
+            ball.kill();
+            createBall();
+        }
+    } catch (e) {
+        console.error('Update error:', e);
+    }
+}
+
+function tweenOut() {
+    if (!game || !emoji) return;
+    
+    try {
+        moveOutTween = game.add.tween(emoji).to( { y: 50 }, 600, Phaser.Easing.Elastic.In, true);
+        if (moveOutTween) {
+            moveOutTween.onComplete.add(function() { 
+                if (emoji && emoji.kill) emoji.kill(); 
+            }, this);
+        }
+        setTimeout(function () {
+            if (game && emoji) {
+                fadeOutTween = game.add.tween(emoji).to( { alpha: 0 }, 300, Phaser.Easing.Linear.None, true, 0, 0, false);
+            }
+        }, 450);
+    } catch (e) {
+        console.error('TweenOut error:', e);
+    }
+}
+
+function hitRim() {
+    // Sound placeholder - no actual sound in this version
+}
+
+function createBall() {
+    if (!game) return;
+    
+    try {
+        var xpos;
+        if (current_score === 0) {
+            xpos = 200;
+        } else {
+            xpos = 60 + Math.random() * 280;
+        }
+        ball = game.add.sprite(xpos, 547, 'ball');
+        if (game && game.add) {
+            game.add.tween(ball.scale).from({x : 0.7, y : 0.7}, 100, Phaser.Easing.Linear.None, true, 0, 0, false);
+        }
+        game.physics.p2.enable(ball, false);
+        ball.body.setCircle(60);
+        ball.launched = false;
+        ball.isBelowHoop = false;
+    } catch (e) {
+        console.error('CreateBall error:', e);
+    }
+}
+
+var location_interval;
+var isDown = false;
+var start_location;
+var end_location;
+
+function click(pointer) {
+    if (!game || !ball || !ball.body || !pointer) return;
+    
+    try {
+        var bodies = game.physics.p2.hitTest(pointer.position, [ ball.body ]);
+        if (bodies.length) {
+            start_location = [pointer.x, pointer.y];
+            isDown = true;
+            location_interval = setInterval(function () {
+                if (pointer && pointer.x !== undefined && pointer.y !== undefined) {
+                    start_location = [pointer.x, pointer.y];
+                }
+            }.bind(this), 200);
+        }
+    } catch (e) {
+        console.error('Click error:', e);
+    }
+}
+
+function release(pointer) {
+    if (!pointer) return;
+    
+    try {
+        if (isDown) {
+            if (location_interval) {
+                window.clearInterval(location_interval);
+                location_interval = null;
+            }
+            isDown = false;
+            end_location = [pointer.x, pointer.y];
+
+            if (end_location[1] < start_location[1]) {
+                var slope = [end_location[0] - start_location[0], end_location[1] - start_location[1]];
+                var x_traj = -2300 * slope[0] / slope[1];
+                launch(x_traj);
+            }
+        }
+    } catch (e) {
+        console.error('Release error:', e);
+    }
+}
+
+function launch(x_traj) {
+    if (!ball || !ball.body || !game) return;
+    
+    try {
+        if (ball.launched === false) {
+            ball.body.setCircle(36);
+            ball.body.setCollisionGroup(collisionGroup);
+            current_best_text.text = '';
+            current_best_score_text.text = '';
+            ball.launched = true;
+            game.physics.p2.gravity.y = 3000;
+            if (game && game.add) {
+            game.add.tween(ball.scale).to({x : 0.6, y : 0.6}, 500, Phaser.Easing.Linear.None, true, 0, 0, false);
+        }
+            ball.body.velocity.x = x_traj;
+            ball.body.velocity.y = -1750;
+            ball.body.rotateRight(x_traj / 3);
+        }
+    } catch (e) {
+        console.error('Launch error:', e);
+    }
+}
+
+</script>
+
+</body>
+</html>
