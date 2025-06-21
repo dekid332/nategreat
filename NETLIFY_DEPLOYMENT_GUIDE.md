@@ -11,12 +11,15 @@ The build command was trying to compile both server and client code, but Netlify
 ### 1. Updated netlify.toml Configuration
 ```toml
 [build]
-  command = "npm ci && npx vite build"
+  command = "npm ci && npm install sharp && npx vite build"
   publish = "dist/public"
 
 [build.environment]
   NODE_VERSION = "18"
 ```
+
+### 2. Added Sharp Package
+The `sharp` package was added to dependencies as required by Netlify for image processing.
 
 ### 2. Alternative Fix (if above fails)
 If the build still fails, replace the build command in netlify.toml with:
