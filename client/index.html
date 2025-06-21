@@ -13,13 +13,45 @@
     <script type="text/javascript" src="/phaser.min.js"></script>
     
     <style type="text/css">
+        :root {
+            --theme-bg-start: #0f0f0f;
+            --theme-bg-end: #6a2d9e;
+            --theme-primary: #9945ff;
+            --theme-accent: #00d4ff;
+            --theme-text: #c0c0c0;
+            --theme-border: #9945ff;
+        }
+
+        [data-theme="cyber"] {
+            --theme-bg-start: #0a0a0a;
+            --theme-bg-end: #1a1a2e;
+            --theme-primary: #ff6b6b;
+            --theme-accent: #4ecdc4;
+            --theme-text: #ffffff;
+            --theme-border: #ff6b6b;
+        }
+
+        [data-theme="ocean"] {
+            --theme-bg-start: #0c0c2e;
+            --theme-bg-end: #1e3a5f;
+            --theme-primary: #4fa8d8;
+            --theme-accent: #7dd3fc;
+            --theme-text: #e0f2fe;
+            --theme-border: #4fa8d8;
+        }
+
         body {
             margin: 0;
-            padding: 20px;
+            padding: 0;
             font-family: 'Orbitron', monospace;
-            background: linear-gradient(135deg, #0f0f0f 0%, #6a2d9e 100%);
-            color: #00d4ff;
+            background: linear-gradient(135deg, var(--theme-bg-start) 0%, var(--theme-bg-end) 100%);
+            color: var(--theme-accent);
             min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            padding: 20px;
         }
         
         h1 {
@@ -28,7 +60,7 @@
             font-weight: 900;
             margin: 20px 0;
             text-transform: uppercase;
-            background: linear-gradient(45deg, #9945ff, #00d4ff);
+            background: linear-gradient(45deg, var(--theme-primary), var(--theme-accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -37,7 +69,7 @@
         
         canvas {
             margin: 0 auto;
-            border: 3px solid #9945ff;
+            border: 3px solid var(--theme-border);
             border-radius: 10px;
             box-shadow: 0 0 30px rgba(153, 69, 255, 0.3);
             display: block;
@@ -49,30 +81,437 @@
             max-width: 500px;
             text-align: center;
             font-size: 1.2rem;
-            color: #c0c0c0;
+            color: var(--theme-text);
             font-weight: 400;
         }
         
         .subtitle {
             text-align: center;
             font-size: 1.5rem;
-            color: #00d4ff;
+            color: var(--theme-accent);
             margin: 10px 0 30px 0;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
+
+        .menu-screen, .leaderboard-screen, .game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--theme-bg-start) 0%, var(--theme-bg-end) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .button {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, var(--theme-primary), var(--theme-accent));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 200px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(153, 69, 255, 0.4);
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--theme-border);
+        }
+
+        .form-group {
+            margin: 15px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--theme-accent);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--theme-border);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .leaderboard-table {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid var(--theme-border);
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+
+        .leaderboard-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-table th {
+            background: var(--theme-primary);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table td {
+            color: var(--theme-text);
+        }
+
+        .rank {
+            font-weight: bold;
+            color: var(--theme-accent);
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--theme-accent);
+        }
+
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .theme-selector select {
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--theme-accent);
+            border: 2px solid var(--theme-border);
+            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+        }
+
+        .wallet-display {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--theme-primary);
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
     </style>
 </head>
-<body>
+<body data-theme="solana">
 
-<h1>Nate The Great</h1>
-<div class="subtitle">Blockchain Basketball</div>
+<!-- Theme Selector -->
+<div class="theme-selector">
+    <select id="themeSelector">
+        <option value="solana">Solana Theme</option>
+        <option value="cyber">Cyber Theme</option>
+        <option value="ocean">Ocean Theme</option>
+    </select>
+</div>
+
+<!-- Main Menu -->
+<div id="menuScreen" class="menu-screen">
+    <h1>Nate The Great</h1>
+    <div class="subtitle">Blockchain Basketball</div>
+    
+    <div class="menu-buttons">
+        <button class="button" onclick="startGame()">Start Game</button>
+        <button class="button secondary" onclick="showLeaderboard()">Leaderboard</button>
+    </div>
+    
+    <div class="info">
+        Drag the basketball upward to shoot it into the hoop!<br>
+        Powered by Solana blockchain technology.
+    </div>
+</div>
+
+<!-- Game Screen -->
+<div id="gameScreen" class="game-container hidden">
+    <button class="button secondary back-button" onclick="backToMenu()">← Menu</button>
+    
+    <h1>Nate The Great</h1>
+    <div class="subtitle">Blockchain Basketball</div>
+    
+    <div id="gameContainer"></div>
+    
+    <div class="info">Instructions: Drag the ball upward to shoot it into the hoop!</div>
+</div>
+
+<!-- Leaderboard Screen -->
+<div id="leaderboardScreen" class="leaderboard-screen hidden">
+    <h1>Leaderboard</h1>
+    <div class="subtitle">Top Basketball Legends</div>
+    
+    <div class="leaderboard-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Wallet</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+                <!-- Leaderboard entries will be populated here -->
+            </tbody>
+        </table>
+    </div>
+    
+    <button class="button" onclick="backToMenu()">Back to Menu</button>
+</div>
+
+<!-- Game Over Screen -->
+<div id="gameOverScreen" class="game-over-screen hidden">
+    <h1>Game Over!</h1>
+    <div class="subtitle">Final Score: <span id="finalScore">0</span></div>
+    
+    <form id="scoreForm" onsubmit="submitScore(event)">
+        <div class="form-group">
+            <label for="playerName">Player Name</label>
+            <input type="text" id="playerName" required maxlength="20" placeholder="Enter your name">
+            <div class="error-message" id="nameError"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="walletAddress">Solana Wallet Address</label>
+            <input type="text" id="walletAddress" required placeholder="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM">
+            <div class="error-message" id="walletError"></div>
+        </div>
+        
+        <button type="submit" class="button">Save Score</button>
+        <button type="button" class="button secondary" onclick="skipSaveScore()">Skip & Continue</button>
+    </form>
+</div>
 
 <script type="text/javascript">
 
-// NOTE: Originally 640x1000. Other possible sizes: 512x800, 400x625
-var game = new Phaser.Game(400, 625, Phaser.CANVAS, '', { preload: preload, create: create, update: update });
+// Game state management
+var gameState = 'menu'; // 'menu', 'playing', 'gameover'
+var leaderboard = JSON.parse(localStorage.getItem('nate-basketball-leaderboard') || '[]');
+var currentGameScore = 0;
+var game;
+
+// Theme management
+function changeTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('nate-basketball-theme', theme);
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('nate-basketball-theme') || 'solana';
+document.body.setAttribute('data-theme', savedTheme);
+document.getElementById('themeSelector').value = savedTheme;
+
+document.getElementById('themeSelector').addEventListener('change', function() {
+    changeTheme(this.value);
+});
+
+// Screen management
+function showScreen(screenId) {
+    const screens = ['menuScreen', 'gameScreen', 'leaderboardScreen', 'gameOverScreen'];
+    screens.forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(screenId).classList.remove('hidden');
+}
+
+function startGame() {
+    showScreen('gameScreen');
+    gameState = 'playing';
+    initializeGame();
+}
+
+function showLeaderboard() {
+    showScreen('leaderboardScreen');
+    displayLeaderboard();
+}
+
+function backToMenu() {
+    showScreen('menuScreen');
+    gameState = 'menu';
+    if (game) {
+        game.destroy();
+        game = null;
+    }
+}
+
+function showGameOver(score) {
+    currentGameScore = score;
+    document.getElementById('finalScore').textContent = score;
+    showScreen('gameOverScreen');
+    gameState = 'gameover';
+}
+
+// Leaderboard functions
+function displayLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = '';
+    
+    if (leaderboard.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No scores yet. Be the first to play!</td></tr>';
+        return;
+    }
+    
+    leaderboard.forEach((entry, index) => {
+        const row = document.createElement('tr');
+        const shortWallet = entry.wallet.length > 8 ? 
+            `${entry.wallet.slice(0, 4)}...${entry.wallet.slice(-4)}` : 
+            entry.wallet;
+        
+        row.innerHTML = `
+            <td class="rank">#${index + 1}</td>
+            <td>${entry.playerName}</td>
+            <td class="score">${entry.score}</td>
+            <td class="wallet-display">${shortWallet}</td>
+            <td>${new Date(entry.date).toLocaleDateString()}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Form validation
+function validateSolanaWallet(address) {
+    // Basic Solana wallet validation - 32-44 characters, base58
+    const solanaPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return solanaPattern.test(address);
+}
+
+function submitScore(event) {
+    event.preventDefault();
+    
+    const playerName = document.getElementById('playerName').value.trim();
+    const walletAddress = document.getElementById('walletAddress').value.trim();
+    
+    // Clear previous errors
+    document.getElementById('nameError').textContent = '';
+    document.getElementById('walletError').textContent = '';
+    
+    let hasErrors = false;
+    
+    // Validate player name
+    if (!playerName) {
+        document.getElementById('nameError').textContent = 'Player name is required';
+        hasErrors = true;
+    } else if (playerName.length > 20) {
+        document.getElementById('nameError').textContent = 'Name must be 20 characters or less';
+        hasErrors = true;
+    }
+    
+    // Validate wallet address
+    if (!walletAddress) {
+        document.getElementById('walletError').textContent = 'Wallet address is required';
+        hasErrors = true;
+    } else if (!validateSolanaWallet(walletAddress)) {
+        document.getElementById('walletError').textContent = 'Invalid Solana wallet address';
+        hasErrors = true;
+    }
+    
+    if (hasErrors) return;
+    
+    // Add to leaderboard
+    const newEntry = {
+        id: Date.now().toString(),
+        playerName: playerName,
+        score: currentGameScore,
+        wallet: walletAddress,
+        date: new Date().toISOString()
+    };
+    
+    leaderboard.push(newEntry);
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 100); // Keep top 100
+    
+    localStorage.setItem('nate-basketball-leaderboard', JSON.stringify(leaderboard));
+    
+    // Clear form
+    document.getElementById('scoreForm').reset();
+    
+    backToMenu();
+}
+
+function skipSaveScore() {
+    backToMenu();
+}
+
+// Initialize game
+function initializeGame() {
+    if (game) {
+        game.destroy();
+    }
+    
+    // NOTE: Originally 640x1000. Other possible sizes: 512x800, 400x625
+    game = new Phaser.Game(400, 625, Phaser.CANVAS, 'gameContainer', { preload: preload, create: create, update: update });
+}
 
 function preload() {
     game.load.image('ball', 'assets/images/ball.png');
@@ -213,6 +652,10 @@ function update() {
             if (current_score > high_score) {
                 high_score = current_score;
             }
+            // Game over - show score submission
+            setTimeout(function() {
+                showGameOver(current_score);
+            }, 2000);
             current_score = 0;
             current_score_text.text = '';
             current_best_text.text = 'Current Best';
