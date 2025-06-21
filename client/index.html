@@ -302,7 +302,11 @@
     
     <div id="gameContainer"></div>
     
-    <div class="info">Instructions: Drag the ball upward to shoot it into the hoop!</div>
+    <div class="info">
+        Instructions: Drag the ball upward to shoot it into the hoop!
+        <br><br>
+        <button class="button" onclick="submitCurrentScore()" style="margin-top: 10px;">Submit Current Score</button>
+    </div>
 </div>
 
 <!-- Leaderboard Screen -->
@@ -348,8 +352,8 @@
             <div class="error-message" id="walletError"></div>
         </div>
         
-        <button type="submit" class="button">Save Score</button>
-        <button type="button" class="button secondary" onclick="skipSaveScore()">Skip & Continue</button>
+        <button type="submit" class="button">Save Score & Continue Playing</button>
+        <button type="button" class="button secondary" onclick="continueGame()">Skip & Continue Playing</button>
     </form>
 </div>
 
@@ -496,11 +500,25 @@ function submitScore(event) {
     // Clear form
     document.getElementById('scoreForm').reset();
     
-    backToMenu();
+    continueGame();
 }
 
 function skipSaveScore() {
     backToMenu();
+}
+
+function continueGame() {
+    showScreen('gameScreen');
+}
+
+function submitCurrentScore() {
+    if (current_score === 0) {
+        alert('Score some points first!');
+        return;
+    }
+    currentGameScore = current_score;
+    document.getElementById('finalScore').textContent = current_score;
+    showScreen('gameOverScreen');
 }
 
 // Initialize game
@@ -655,10 +673,7 @@ function update() {
                 if (current_score > high_score) {
                     high_score = current_score;
                 }
-                // Game over - show score submission
-                setTimeout(function() {
-                    showGameOver(current_score);
-                }, 2000);
+                // Reset score but continue playing
                 current_score = 0;
                 if (current_score_text) current_score_text.text = '';
                 if (current_best_text) current_best_text.text = 'Current Best';
@@ -682,11 +697,23 @@ function update() {
 }
 
 function tweenOut() {
-    moveOutTween = game.add.tween(emoji).to( { y: 50 }, 600, Phaser.Easing.Elastic.In, true);
-    moveOutTween.onComplete.add(function() { emoji.kill(); }, this);
-    setTimeout(function () {
-        fadeOutTween = game.add.tween(emoji).to( { alpha: 0 }, 300, Phaser.Easing.Linear.None, true, 0, 0, false);
-    }, 450);
+    if (!game || !emoji) return;
+    
+    try {
+        moveOutTween = game.add.tween(emoji).to( { y: 50 }, 600, Phaser.Easing.Elastic.In, true);
+        if (moveOutTween) {
+            moveOutTween.onComplete.add(function() { 
+                if (emoji && emoji.kill) emoji.kill(); 
+            }, this);
+        }
+        setTimeout(function () {
+            if (game && emoji) {
+                fadeOutTween = game.add.tween(emoji).to( { alpha: 0 }, 300, Phaser.Easing.Linear.None, true, 0, 0, false);
+            }
+        }, 450);
+    } catch (e) {
+        console.error('TweenOut error:', e);
+    }
 }
 
 function hitRim() {
