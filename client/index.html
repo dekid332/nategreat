@@ -403,10 +403,53 @@ function showLeaderboard() {
 function backToMenu() {
     showScreen('menuScreen');
     gameState = 'menu';
+    cleanupGame();
+}
+
+function cleanupGame() {
+    // Clear any active intervals
+    if (location_interval) {
+        clearInterval(location_interval);
+        location_interval = null;
+    }
+    
+    // Reset state variables
+    isDown = false;
+    start_location = null;
+    end_location = null;
+    
+    // Destroy tweens if they exist
+    if (moveInTween) {
+        try { moveInTween.stop(); } catch (e) {}
+        moveInTween = null;
+    }
+    if (fadeInTween) {
+        try { fadeInTween.stop(); } catch (e) {}
+        fadeInTween = null;
+    }
+    if (moveOutTween) {
+        try { moveOutTween.stop(); } catch (e) {}
+        moveOutTween = null;
+    }
+    if (fadeOutTween) {
+        try { fadeOutTween.stop(); } catch (e) {}
+        fadeOutTween = null;
+    }
+    
+    // Destroy game
     if (game) {
-        game.destroy();
+        try {
+            game.destroy();
+        } catch (e) {
+            console.log('Game cleanup error:', e);
+        }
         game = null;
     }
+    
+    // Reset game objects
+    ball = null;
+    emoji = null;
+    current_score = 0;
 }
 
 function showGameOver(score) {
@@ -679,11 +722,17 @@ function update() {
                 if (current_best_text) current_best_text.text = 'Current Best';
                 if (current_best_score_text) current_best_score_text.text = high_score;
             }
-            emoji = game.add.sprite(180, 100, emojiName);
-            emoji.scale.setTo(0.25, 0.25);
-            moveInTween = game.add.tween(emoji).from( { y: 150 }, 500, Phaser.Easing.Elastic.Out, true);
-            fadeInTween = game.add.tween(emoji).from( { alpha: 0 }, 200, Phaser.Easing.Linear.None, true, 0, 0, false);
-            moveInTween.onComplete.add(tweenOut, this);
+            if (game && game.add) {
+                emoji = game.add.sprite(180, 100, emojiName);
+                if (emoji) {
+                    emoji.scale.setTo(0.25, 0.25);
+                    moveInTween = game.add.tween(emoji).from( { y: 150 }, 500, Phaser.Easing.Elastic.Out, true);
+                    fadeInTween = game.add.tween(emoji).from( { alpha: 0 }, 200, Phaser.Easing.Linear.None, true, 0, 0, false);
+                    if (moveInTween) {
+                        moveInTween.onComplete.add(tweenOut, this);
+                    }
+                }
+            }
         }
 
         if (ball && ball.body.y > 1200) {
@@ -732,7 +781,9 @@ function createBall() {
         }
         if (spawn) spawn.play();
         ball = game.add.sprite(xpos, 547, 'ball');
-        game.add.tween(ball.scale).from({x : 0.7, y : 0.7}, 100, Phaser.Easing.Linear.None, true, 0, 0, false);
+        if (game && game.add) {
+            game.add.tween(ball.scale).from({x : 0.7, y : 0.7}, 100, Phaser.Easing.Linear.None, true, 0, 0, false);
+        }
         game.physics.p2.enable(ball, false);
         ball.body.setCircle(60);
         ball.launched = false;
@@ -800,7 +851,9 @@ function launch(x_traj) {
             current_best_score_text.text = '';
             ball.launched = true;
             game.physics.p2.gravity.y = 3000;
+            if (game && game.add) {
             game.add.tween(ball.scale).to({x : 0.6, y : 0.6}, 500, Phaser.Easing.Linear.None, true, 0, 0, false);
+        }
             ball.body.velocity.x = x_traj;
             ball.body.velocity.y = -1750;
             ball.body.rotateRight(x_traj / 3);
