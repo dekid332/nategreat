@@ -3,7 +3,7 @@
 ## Step 1: Netlify Dashboard Configuration
 
 ### Build Settings (in Netlify Dashboard):
-- **Build command**: `npx vite build --config vite.config.netlify.ts`
+- **Build command**: `npm install --include=dev && npx vite build`
 - **Publish directory**: `dist/public`
 - **Base directory**: (leave empty)
 
@@ -25,7 +25,7 @@
 
 ### Enter These Values:
 ```
-Build command: npx vite build --config vite.config.netlify.ts
+Build command: npm install --include=dev && npx vite build
 Publish directory: dist/public
 ```
 
@@ -50,9 +50,10 @@ If you prefer manual deploys:
 3. Or use Netlify CLI: `netlify deploy --prod --dir=dist/public`
 
 ## Alternative Build Commands (if main one fails):
-1. `npm ci && npx vite build --config vite.config.netlify.ts`
-2. `npm install && npx vite build --config vite.config.netlify.ts`
-3. `yarn install && yarn build`
+1. `npm ci && npx vite build`
+2. `npm install && npx vite build`
+3. `yarn install && yarn vite build`
+4. `npm run build` (uses the existing package.json script)
 
 ## Troubleshooting:
 - If build fails, check the exact error in Netlify build logs
